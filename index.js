@@ -15,7 +15,7 @@ const PORT=process.env.PORT ||3000
 app.use(express.json());
 
 app.use(cors({
-    origin:'https://spiritual-journey-tracker.vercel.app/',
+    origin:'https://spiritual-journey-tracker.vercel.app',
     credentials:true
 }))
 
