@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon index.js",
-    "vercel-start":"nodemon index.js"
+    "vercel-start": "nodemon index.js"
   },
   "keywords": [],
   "author": "",

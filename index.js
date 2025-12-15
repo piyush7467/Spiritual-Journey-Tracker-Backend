@@ -1,14 +1,16 @@
+import dotenv from 'dotenv'
+dotenv.config()
 import express from "express";
-import dotenv from "dotenv";
 import cors from "cors";
 import mongoose from "mongoose";
 
 import userRoutes from "./routes/userRoutes.js";
 import placeRoutes from "./routes/placeRoutes.js";
 
-dotenv.config();
+
 
 const app = express();
+
 
 /* ===========================
    MIDDLEWARE
@@ -66,6 +68,13 @@ app.use("/api/v1/place", placeRoutes);
 app.get("/", (req, res) => {
   res.status(200).send("✅ Backend is live and connected to MongoDB");
 });
+
+app.get("/env-test", (req, res) => {
+  res.json({
+    JWT_SECRET: process.env.SECRET_KEY ? "EXISTS" : "MISSING"
+  });
+});
+
 
 
 export default app;
