@@ -4,8 +4,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon index.js",
-    "vercel-start": "nodemon index.js"
+    "dev": "nodemon api/index.js",
+    "vercel-start": "nodemon api/index.js"
   },
   "keywords": [],
   "author": "",
