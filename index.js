@@ -1,23 +1,19 @@
-import express from 'express'
-import dotenv from 'dotenv'
-import cors from 'cors'
-import connectDb from './config/db.js';
-import userRoutes from './routes/userRoutes.js'
-import placeRoutes from './routes/placeRoutes.js'
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import userRoutes from "./routes/userRoutes.js";
+import placeRoutes from "./routes/placeRoutes.js"
+import connectDb from "./config/db.js";
 
-dotenv.config()
+dotenv.config();
 
-const app=express();
-const PORT=process.env.PORT ||3000
+const app = express();
 
+/* ===========================
+   MIDDLEWARE
+=========================== */
 
-//default middleware
 app.use(express.json());
-
-// app.use(cors({
-//     origin:'https://spiritual-journey-tracker.vercel.app',
-//     credentials:true
-// }))
 
 app.use(
   cors({
@@ -31,19 +27,28 @@ app.use(
   })
 );
 
+// Handle OPTIONS requests
 app.options("*", cors());
 
+/* ===========================
+   ROUTES
+=========================== */
 
-//user route
-app.use('/api/v1/user',userRoutes);
-app.use('/api/v1/place',placeRoutes);
+app.use("/api/v1/user", userRoutes);
+app.use("/api/v1/place", placeRoutes);
 
-app.get('/',(req , res )=>{
-    res.send("Backend is running")
-})
+app.get("/", (req, res) => {
+  res.status(200).send("Backend is running 🚀");
+});
 
-connectDb()
-app.listen(PORT,()=>{
-    console.log(`Server is running on port ${PORT}`);
-    
-})
+/* ===========================
+   DATABASE
+=========================== */
+
+connectDb();
+
+/* ===========================
+   EXPORT FOR VERCEL
+=========================== */
+
+export default app;
