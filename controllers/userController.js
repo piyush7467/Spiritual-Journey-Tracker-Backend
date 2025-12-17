@@ -13,7 +13,7 @@ import cloudinary from "../utils/cloudinary.js";
 
 export const registerUser = async (req, res) => {
     try {
-        const { name, email, password, phone, address,mantras } = req.body;
+        const { name, email, password, phone, address, mantras } = req.body;
 
         if (!name || !email || !password) {
             return res.status(400).json({
@@ -48,7 +48,19 @@ export const registerUser = async (req, res) => {
             { expiresIn: "10m" }
         );
 
-        verifyMail(token, email);
+        // await verifyMail(token, email);
+
+        try {
+            await verifyMail(token, email);
+        } catch (emailError) {
+            console.error("Email failed:", emailError.message);
+            // Optional: delete user if email fails
+            // await User.findByIdAndDelete(newUser._id);
+            return res.status(500).json({
+                success: false,
+                message: "Failed to send verification email",
+            });
+        }
 
         newUser.token = token;
         await newUser.save();
@@ -255,7 +267,16 @@ export const forgotPassword = async (req, res) => {
         user.otpExpiry = expiry;
         await user.save();
 
-        await sendOtpMail(email, otp);
+        // await sendOtpMail(email, otp);
+        try {
+            await sendOtpMail(email, otp);
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: "Failed to send OTP email",
+            });
+        }
+
         return res.status(200).json({
             success: true,
             message: "Otp sent successfully"
@@ -411,52 +432,52 @@ export const sendContactMessage = async (req, res) => {
 
 
 export const updateProfile = async (req, res) => {
-  try {
-    const userId = req.userId; // set by auth middleware
+    try {
+        const userId = req.userId; // set by auth middleware
 
-    const { name, phone, address,  mantras,} = req.body;
+        const { name, phone, address, mantras, } = req.body;
 
-    const file = req.file;
+        const file = req.file;
 
-    const user = await User.findById(userId).select("-password");
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
+        const user = await User.findById(userId).select("-password");
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        /* ---------------- Profile Image Upload ---------------- */
+        if (file) {
+            const fileUri = getDataUri(file);
+            const uploadRes = await cloudinary.uploader.upload(fileUri, {
+                folder: "profiles",
+            });
+            user.profilePic = uploadRes.secure_url;
+        }
+
+        /* ---------------- Allowed Updates ONLY ---------------- */
+        if (name) user.name = name;
+        if (phone) user.phone = phone;
+        if (address) user.address = address;
+        if (mantras) user.mantras = mantras;
+
+        // ❌ email & password are intentionally ignored
+
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            user,
+        });
+
+    } catch (error) {
+        console.error("Update profile error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update profile",
+        });
     }
-
-    /* ---------------- Profile Image Upload ---------------- */
-    if (file) {
-      const fileUri = getDataUri(file);
-      const uploadRes = await cloudinary.uploader.upload(fileUri, {
-        folder: "profiles",
-      });
-      user.profilePic = uploadRes.secure_url;
-    }
-
-    /* ---------------- Allowed Updates ONLY ---------------- */
-    if (name) user.name = name;
-    if (phone) user.phone = phone;
-    if (address) user.address = address;
-    if (mantras) user.mantras = mantras;
-
-    // ❌ email & password are intentionally ignored
-
-    await user.save();
-
-    return res.status(200).json({
-      success: true,
-      message: "Profile updated successfully",
-      user,
-    });
-
-  } catch (error) {
-    console.error("Update profile error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to update profile",
-    });
-  }
 };
 

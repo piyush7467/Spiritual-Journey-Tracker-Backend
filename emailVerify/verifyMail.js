@@ -1,45 +1,40 @@
-import nodemailer from 'nodemailer';
-import 'dotenv/config'
-import fs from "fs"
-import path from "path"
-import { fileURLToPath } from "url"
-import handlebars from "handlebars"
+import { Resend } from "resend";
+import "dotenv/config";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import handlebars from "handlebars";
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+// Initialize Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const verifyMail = async (token, email) => {
-
+  try {
+    // Read email template
     const emailTemplateSource = fs.readFileSync(
-        path.join(__dirname, "template.hbs"),
-        "utf-8"
-    )
+      path.join(__dirname, "template.hbs"),
+      "utf-8"
+    );
 
-    const template = handlebars.compile(emailTemplateSource)
-    const htmlToSend = template({ token: encodeURIComponent(token) })
+    const template = handlebars.compile(emailTemplateSource);
+    const htmlToSend = template({
+      token: encodeURIComponent(token),
+    });
 
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.MAIL_USER,
-            pass: process.env.MAIL_PASSWORD
-        }
-    })
-    const mailConfigurations = {
-        from: process.env.MAIL_USER,
-        to: email,
-        subject: 'Email Verification',
-        html: htmlToSend,
-    }
+    // Send email via Resend
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM, // e.g. no-reply@yourdomain.com
+      to: email,
+      subject: "Email Verification",
+      html: htmlToSend,
+    });
 
-    transporter.sendMail(mailConfigurations, function (error, info) {
-        if (error) {
-            throw new Error(error)
-        }
-        console.log('Email sent successfully');
-        console.log(info);
-
-
-    })
-}
+    console.log("✅ Verification email sent successfully");
+  } catch (error) {
+    console.error("❌ Verification email failed:", error);
+    throw new Error("Failed to send verification email");
+  }
+};
