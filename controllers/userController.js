@@ -48,19 +48,17 @@ export const registerUser = async (req, res) => {
             { expiresIn: "10m" }
         );
 
-        await verifyMail(token, email);
-
         try {
             await verifyMail(token, email);
         } catch (emailError) {
             console.error("Email failed:", emailError.message);
-            // Optional: delete user if email fails
             await User.findByIdAndDelete(newUser._id);
             return res.status(500).json({
                 success: false,
                 message: "Failed to send verification email",
             });
         }
+
 
         newUser.token = token;
         await newUser.save();
@@ -267,7 +265,6 @@ export const forgotPassword = async (req, res) => {
         user.otpExpiry = expiry;
         await user.save();
 
-        await sendOtpMail(email, otp);
         try {
             await sendOtpMail(email, otp);
         } catch (error) {
@@ -276,6 +273,7 @@ export const forgotPassword = async (req, res) => {
                 message: "Failed to send OTP email",
             });
         }
+
 
         return res.status(200).json({
             success: true,

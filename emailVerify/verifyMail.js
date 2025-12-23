@@ -19,12 +19,24 @@ export const verifyMail = async (token, email) => {
         const template = handlebars.compile(emailTemplateSource);
         const htmlToSend = template({ token: encodeURIComponent(token) });
 
+        // await sgMail.send({
+        //     to: email,
+        //     from: process.env.EMAIL_FROM,
+        //     subject: "Email Verification",
+        //     html: htmlToSend,
+        // });
+
         await sgMail.send({
             to: email,
-            from: process.env.EMAIL_FROM,
-            subject: "Email Verification",
+            from: {
+                email: process.env.EMAIL_FROM,
+                name: "Spiritual Journey Tracker"
+            },
+            replyTo: process.env.EMAIL_FROM,
+            subject: "Verify your email to activate your account",
             html: htmlToSend,
         });
+
 
         console.log("✅ Verification email sent successfully");
     } catch (error) {
